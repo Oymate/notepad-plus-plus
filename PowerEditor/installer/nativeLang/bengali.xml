@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NotepadPlus>
-    <Native-Langue name="বাংলঅ" filename="bengali.xml" >
+    <Native-Langue name="বাংলা" filename="bengali.xml" >
         <Menu>
             <Main>
                 <!-- Main Menu Entries -->
@@ -33,11 +33,11 @@
                     <Item subMenuId="edit-pasteSpecial" name="বিশেষ পেস্ট"/>
                     <Item subMenuId="search-markAll" name="চিহ্ন সব"/>
                     <Item subMenuId="search-unmarkAll" name="অচিহ্নিত সমস্ত"/>
-                    <Item subMenuId="search-jumpUp" name="আপ তিড়িং লাফ"/>
-                    <Item subMenuId="search-jumpDown" name="নিচে ঝাঁপ দাও"/>
+                    <Item subMenuId="search-jumpUp" name="দ্রুত উপরে যাও"/>
+                    <Item subMenuId="search-jumpDown" name="দ্রুত নিচে যাও"/>
                     <Item subMenuId="search-bookmark" name="বুকমার্ক"/>
                     <Item subMenuId="view-showSymbol"  name="শো প্রতীক"/>
-                    <Item subMenuId="view-zoom"  name="জুম্"/>
+                    <Item subMenuId="view-zoom"  name="দৃশ্য বড়"/>
                     <Item subMenuId="view-moveCloneDocument"  name="ক্লোন ডকুমেন্ট সরানো"/>
                     <Item subMenuId="view-tab"  name="ট্যাব"/>
                     <Item subMenuId="view-collapseLevel" name="পতন শ্রেনী"/>
@@ -54,13 +54,13 @@
                     <Item subMenuId="encoding-greek"  name="গ্রিক"/>
                     <Item subMenuId="encoding-hebrew"  name="ইহুদি"/>
                     <Item subMenuId="encoding-japanese"  name="জাপানি"/>
-                    <Item subMenuId="encoding-korean" name="কোরিয়ান"/>
+                    <Item subMenuId="encoding-korean" name="কোরীয়"/>
                     <Item subMenuId="encoding-northEuropean" name="উত্তর ইউরোপীয়"/>
                     <Item subMenuId="encoding-thai" name="থাই"/>
                     <Item subMenuId="encoding-turkish" name="তুরস্ক"/>
                     <Item subMenuId="encoding-westernEuropean" name="পশ্চিম ইউরোপীয়"/>
-                    <Item subMenuId="encoding-vietnamese" name="ভিএত্নেম লোক"/>
-                    <Item subMenuId="settings-import"  name="আমদানি"/>
+                    <Item subMenuId="encoding-vietnamese" name="ভিয়েতনামী"/>
+                    <Item subMenuId="settings-import"  name="পছন্দসমূহ আমদানি"/>
                 </SubEntries>
 
                 <!-- all menu item -->
