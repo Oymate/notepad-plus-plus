@@ -28,22 +28,22 @@
                     <Item subMenuId="edit-lineOperations" name="লাইন ক্রিয়া"/>
                     <Item subMenuId="edit-comment" name="মন্তব্য"/>
                     <Item subMenuId="edit-autoCompletion" name="স্বয়ং পূরণ"/>
-                    <Item subMenuId="edit-eolConversion" name=" এবংঐঠ পরিবর্তন"/>
-                    <Item subMenuId="edit-blankOperations" name="ফাঁকা অপারেশনস"/>
-                    <Item subMenuId="edit-pasteSpecial" name="বিশেষ পেস্ট"/>
-                    <Item subMenuId="search-markAll" name="চিহ্ন সব"/>
-                    <Item subMenuId="search-unmarkAll" name="অচিহ্নিত সমস্ত"/>
+                    <Item subMenuId="edit-eolConversion" name="মেয়াদোত্তীর্ণের রূপান্তর"/>
+                    <Item subMenuId="edit-blankOperations" name="ফাঁকা ক্রিয়া"/>
+                    <Item subMenuId="edit-pasteSpecial" name="বিশেষ লেটন"/>
+                    <Item subMenuId="search-markAll" name="সব চিহ্নিত করো"/>
+                    <Item subMenuId="search-unmarkAll" name="সব অচিহ্নিত করো"/>
                     <Item subMenuId="search-jumpUp" name="দ্রুত উপরে যাও"/>
                     <Item subMenuId="search-jumpDown" name="দ্রুত নিচে যাও"/>
                     <Item subMenuId="search-bookmark" name="বুকমার্ক"/>
-                    <Item subMenuId="view-showSymbol"  name="শো প্রতীক"/>
-                    <Item subMenuId="view-zoom"  name="দৃশ্য বড়"/>
-                    <Item subMenuId="view-moveCloneDocument"  name="ক্লোন ডকুমেন্ট সরানো"/>
+                    <Item subMenuId="view-showSymbol"  name="প্রতীক দেখাও"/>
+                    <Item subMenuId="view-zoom"  name="বড় করো"/>
+                    <Item subMenuId="view-moveCloneDocument"  name="নথিকে অনুরূপ/সরাও করো"/>
                     <Item subMenuId="view-tab"  name="ট্যাব"/>
-                    <Item subMenuId="view-collapseLevel" name="পতন শ্রেনী"/>
-                    <Item subMenuId="view-uncollapseLevel" name="জাতিসংঘের পতন শ্রেনী"/>
-                    <Item subMenuId="view-project" name="প্রকল্প"/>
-                    <Item subMenuId="encoding-characterSets"  name="অক্ষর সেট"/>
+                    <Item subMenuId="view-collapseLevel" name="স্তর সংকোচন করো"/>
+                    <Item subMenuId="view-uncollapseLevel" name="স্তর প্রসারিত করো"/>
+                    <Item subMenuId="view-project" name="প্রকল্প দেখো"/>
+                    <Item subMenuId="encoding-characterSets"  name="অক্ষরাংশ সংকেতকরণ"/>
                     <Item subMenuId="encoding-arabic"  name="আরবি"/>
                     <Item subMenuId="encoding-baltic"  name="বাল্টিক"/>
                     <Item subMenuId="encoding-celtic"  name="সেল্টিক"/>
@@ -66,17 +66,18 @@
                 <!-- all menu item -->
                 <Commands>
                     <Item id="41001" name="&amp;নতুন"/>
-                    <Item id="41002" name="&amp;খোলা"/>
+                    <Item id="41002" name="&amp;খুলো..."/>
                     <Item id="41019" name="অনুসন্ধানকারী"/>
-                    <Item id="41020" name="সিএমডি"/>
-                    <Item id="41003" name="নিকট"/>
-                    <Item id="41004" name="&amp;সব নিকট"/>
-                    <Item id="41005" name="এখন ছাড়া সব নথি বন্ধ করুন"/>
-                    <Item id="41009" name="বাম দিকে সব বন্ধ করুন"/>
-                    <Item id="41018" name="ডান দিকে সব বন্ধ করুন"/>
-                    <Item id="41006" name="&amp;সংরক্ষণ করুন"/>
-                    <Item id="41007" name="&amp;সব সংরক্ষণ করুন"/>
-                    <Item id="41008" name="&amp;নতুন নাম সংরক্ষণ করুন ..."/>
+                    <Item id="41020" name="কমান্ড"/>
+                    <Item id="41025" name="কর্মক্ষেত্র হিসেবে ফোল্ডার"/>
+                    <Item id="41003" name="&amp;বন্ধ"/>
+                    <Item id="41004" name="&amp;সব বন্ধ করো"/>
+                    <Item id="41005" name="খোলা বাদে সব নথি বন্ধ করো"/>
+                    <Item id="41009" name="বাম দিকের সব নথি বন্ধ করো"/>
+                    <Item id="41018" name="ডান দিকের সব নথি বন্ধ করো"/>
+                    <Item id="41006" name="&amp;সংরক্ষণ"/>
+                    <Item id="41007" name="&amp;সব সংরক্ষণ"/>
+                    <Item id="41008" name="&amp;নতুন নামে সংরক্ষণ"/>
                     <Item id="41010" name="মুদ্রণ ..."/>
                     <Item id="1001"  name="অমন প্রিন্ট করুন"/>
                     <Item id="41011" name="&amp;প্রস্থান"/>
