@@ -16,16 +16,17 @@
 #pragma once
 #include "Notepad_plus.h"
 
-
+const int splitterSize = 8;
 
 const TCHAR COMMAND_ARG_HELP[] = TEXT("Usage :\r\
 \r\
-notepad++ [--help] [-multiInst] [-noPlugin] [-lLanguage] [-LlangCode] [-nLineNumber] [-cColumnNumber] [-pPosition] [-xLeftPos] [-yTopPos] [-nosession] [-notabbar] [-ro] [-systemtray] [-loadingTime] [-alwaysOnTop] [-openSession] [-r] [-qn=\"Easter egg name\" | -qt=\"a text to display.\" | -qf=\"D:\\my quote.txt\"] [-qSpeed1|2|3] [-quickPrint] [-settingsDir=\"d:\\your settings dir\\\"] [-openFoldersAsWorkspace]  [-titleAdd=\"additional title bar text\"][filePath]\r\
+notepad++ [--help] [-multiInst] [-noPlugin] [-lLanguage] [-udl=\"My UDL Name\"] [-LlangCode] [-nLineNumber] [-cColumnNumber] [-pPosition] [-xLeftPos] [-yTopPos] [-nosession] [-notabbar] [-ro] [-systemtray] [-loadingTime] [-alwaysOnTop] [-openSession] [-r] [-qn=\"Easter egg name\" | -qt=\"a text to display.\" | -qf=\"D:\\my quote.txt\"] [-qSpeed1|2|3] [-quickPrint] [-settingsDir=\"d:\\your settings dir\\\"] [-openFoldersAsWorkspace]  [-titleAdd=\"additional title bar text\"][filePath]\r\
 \r\
 --help : This help message\r\
 -multiInst : Launch another Notepad++ instance\r\
 -noPlugin : Launch Notepad++ without loading any plugin\r\
 -l : Open file or Ghost type with syntax highlighting of choice\r\
+-udl=\"My UDL Name\": Open file by applying User Defined Language\r\
 -L : Apply indicated localization, langCode is browser language code\r\
 -n : Scroll to indicated line on filePath\r\
 -c : Scroll to indicated column on filePath\r\
@@ -53,9 +54,6 @@ filePath : file or folder name to open (absolute or relative path name)\r\
 ");
 
 
-
-
-
 class Notepad_plus_Window : public Window
 {
 public:
@@ -63,40 +61,39 @@ public:
 
 	bool isDlgsMsg(MSG *msg) const;
 
-	HACCEL getAccTable() const
-	{
+	HACCEL getAccTable() const {
 		return _notepad_plus_plus_core.getAccTable();
-	}
+	};
 
-	bool emergency(const generic_string& emergencySavedDir)
-	{
+	bool emergency(const generic_string& emergencySavedDir) {
 		return _notepad_plus_plus_core.emergency(emergencySavedDir);
-	}
+	};
 
-	bool isPrelaunch() const
-	{
+	bool isPrelaunch() const {
 		return _isPrelaunch;
-	}
+	};
 
-	void setIsPrelaunch(bool val)
-	{
+	void setIsPrelaunch(bool val) {
 		_isPrelaunch = val;
-	}
+	};
 
-	generic_string getPluginListVerStr() const
-	{
+	generic_string getPluginListVerStr() const {
 		return _notepad_plus_plus_core.getPluginListVerStr();
-	}
+	};
 
-	virtual void destroy()
-	{
+	virtual void destroy() {
+		if (_hIconAbsent)
+			::DestroyIcon(_hIconAbsent);
 		::DestroyWindow(_hSelf);
-	}
+	};
 
-	static const TCHAR * getClassName()
-	{
+	static const TCHAR * getClassName() {
 		return _className;
-	}
+	};
+
+	HICON getAbsentIcoHandle() {
+		return _hIconAbsent;
+	};
 
 	static HWND gNppHWND;	//static handle to Notepad++ window, NULL if non-existant
 
@@ -112,4 +109,6 @@ private:
 
 	QuoteParams _quoteParams; // keep the availability of quote parameters for thread using
 	std::wstring _userQuote; // keep the availability of this string for thread using
+
+	HICON _hIconAbsent = nullptr;
 };

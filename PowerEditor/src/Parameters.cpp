@@ -305,12 +305,14 @@ static const WinMenuKeyDefinition winKeyDefs[] =
 	{ VK_NULL,    IDM_VIEW_PROJECT_PANEL_3,                     false, false, false, TEXT("Toggle Project Panel 3") },
 	{ VK_NULL,    IDM_VIEW_FILEBROWSER,                         false, false, false, TEXT("Toggle Folder as Workspace") },
 	{ VK_NULL,    IDM_VIEW_DOC_MAP,                             false, false, false, TEXT("Toggle Document Map") },
+	{ VK_NULL,    IDM_VIEW_DOCLIST,                             false, false, false, TEXT("Toggle Document List") },
 	{ VK_NULL,    IDM_VIEW_FUNC_LIST,                           false, false, false, TEXT("Toggle Function List") },
 	{ VK_NULL,    IDM_VIEW_SWITCHTO_PROJECT_PANEL_1,            false, false, false, TEXT("Switch to Project Panel 1") },
 	{ VK_NULL,    IDM_VIEW_SWITCHTO_PROJECT_PANEL_2,            false, false, false, TEXT("Switch to Project Panel 2") },
 	{ VK_NULL,    IDM_VIEW_SWITCHTO_PROJECT_PANEL_3,            false, false, false, TEXT("Switch to Project Panel 3") },
 	{ VK_NULL,    IDM_VIEW_SWITCHTO_FILEBROWSER,                false, false, false, TEXT("Switch to Folder as Workspace") },
 	{ VK_NULL,    IDM_VIEW_SWITCHTO_FUNC_LIST,                  false, false, false, TEXT("Switch to Function List") },
+	{ VK_NULL,    IDM_VIEW_SWITCHTO_DOCLIST,                    false, false, false, TEXT("Switch to Document List") },
 	{ VK_NULL,    IDM_VIEW_SYNSCROLLV,                          false, false, false, nullptr },
 	{ VK_NULL,    IDM_VIEW_SYNSCROLLH,                          false, false, false, nullptr },
 	{ VK_R,       IDM_EDIT_RTL,                                 true,  true,  false, nullptr },
@@ -1534,17 +1536,34 @@ const TCHAR* NppParameters::getUserDefinedLangNameFromExt(TCHAR *ext, TCHAR *ful
 		return nullptr;
 
 	std::vector<generic_string> extVect;
+	int iMatched = -1;
 	for (int i = 0 ; i < _nbUserLang ; ++i)
 	{
 		extVect.clear();
 		cutString(_userLangArray[i]->_ext.c_str(), extVect);
 
+		// Force to use dark mode UDL in dark mode or to use  light mode UDL in light mode
 		for (size_t j = 0, len = extVect.size(); j < len; ++j)
 		{
 			if (!generic_stricmp(extVect[j].c_str(), ext) || (_tcschr(fullName, '.') && !generic_stricmp(extVect[j].c_str(), fullName)))
-				return _userLangArray[i]->_name.c_str();
+			{
+				// preserve ext matched UDL
+				iMatched = i;
+
+				if (((NppDarkMode::isEnabled() && _userLangArray[i]->_isDarkModeTheme)) ||
+					((!NppDarkMode::isEnabled() && !_userLangArray[i]->_isDarkModeTheme)))
+					return _userLangArray[i]->_name.c_str();
+			}
 		}
 	}
+
+	// In case that we are in dark mode but no dark UDL or we are in light mode but no light UDL
+	// We use it anyway
+	if (iMatched >= 0)
+	{
+		return _userLangArray[iMatched]->_name.c_str();
+	}
+
 	return nullptr;
 }
 
@@ -2713,9 +2732,10 @@ std::pair<unsigned char, unsigned char> NppParameters::feedUserLang(TiXmlNode *n
 		childNode && (_nbUserLang < NB_MAX_USER_LANG);
 		childNode = childNode->NextSibling(TEXT("UserLang")) )
 	{
-		const TCHAR *name = (childNode->ToElement())->Attribute(TEXT("name"));
-		const TCHAR *ext = (childNode->ToElement())->Attribute(TEXT("ext"));
-		const TCHAR *udlVersion = (childNode->ToElement())->Attribute(TEXT("udlVersion"));
+		const TCHAR* name = (childNode->ToElement())->Attribute(TEXT("name"));
+		const TCHAR* ext = (childNode->ToElement())->Attribute(TEXT("ext"));
+		const TCHAR* darkModeTheme = (childNode->ToElement())->Attribute(TEXT("darkModeTheme"));
+		const TCHAR* udlVersion = (childNode->ToElement())->Attribute(TEXT("udlVersion"));
 
 		if (!name || !name[0] || !ext)
 		{
@@ -2723,11 +2743,16 @@ std::pair<unsigned char, unsigned char> NppParameters::feedUserLang(TiXmlNode *n
 			continue;
 		}
 
+		bool isDarkModeTheme = false;
+
+		if (darkModeTheme && darkModeTheme[0])
+		{
+			isDarkModeTheme = (lstrcmp(TEXT("yes"), darkModeTheme) == 0);
+		}
+
 		try {
-			if (!udlVersion)
-				_userLangArray[_nbUserLang] = new UserLangContainer(name, ext, TEXT(""));
-			else
-				_userLangArray[_nbUserLang] = new UserLangContainer(name, ext, udlVersion);
+			_userLangArray[_nbUserLang] = new UserLangContainer(name, ext, isDarkModeTheme, udlVersion ? udlVersion : TEXT(""));
+
 			++_nbUserLang;
 
 			TiXmlNode *settingsRoot = childNode->FirstChildElement(TEXT("Settings"));
@@ -4390,6 +4415,21 @@ void NppParameters::feedGUIParameters(TiXmlNode *node)
 				}
 			}
 		}
+		else if (!lstrcmp(nm, TEXT("SaveAllConfirm")))
+		{
+			TiXmlNode *n = childNode->FirstChild();
+			if (n)
+			{
+				const TCHAR* val = n->Value();
+				if (val)
+				{
+					if (lstrcmp(val, TEXT("yes")) == 0)
+						_nppGUI._saveAllConfirm = true;
+					else
+						_nppGUI._saveAllConfirm = false;
+				}
+			}
+		}
 		else if (lstrcmp(nm, TEXT("MaitainIndent")) == 0)
 		{
 			TiXmlNode *n = childNode->FirstChild();
@@ -5372,10 +5412,50 @@ void NppParameters::feedGUIParameters(TiXmlNode *node)
 				return defaultValue;
 			};
 
-			_nppGUI._darkmode.enable = parseYesNoBoolAttribute(TEXT("enable"));
-			_nppGUI._darkmode.enableExperimental = parseYesNoBoolAttribute(TEXT("enableExperimental"));
-			_nppGUI._darkmode.enableMenubar = parseYesNoBoolAttribute(TEXT("enableMenubar"));
-			_nppGUI._darkmode.enableScrollbarHack = parseYesNoBoolAttribute(TEXT("enableScrollbarHack"));
+			_nppGUI._darkmode._isEnabled = parseYesNoBoolAttribute(TEXT("enable"));
+
+			int i;
+			const TCHAR* val;
+			val = element->Attribute(TEXT("colorTone"), &i);
+			if (val)
+				_nppGUI._darkmode._colorTone = static_cast<NppDarkMode::ColorTone>(i);
+
+
+			val = element->Attribute(TEXT("customColorTop"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.pureBackground = i;
+
+			val = element->Attribute(TEXT("customColorMenuHotTrack"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.hotBackground = i;
+
+			val = element->Attribute(TEXT("customColorActive"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.softerBackground = i;
+
+			val = element->Attribute(TEXT("customColorMain"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.background = i;
+
+			val = element->Attribute(TEXT("customColorError"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.errorBackground = i;
+
+			val = element->Attribute(TEXT("customColorText"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.text = i;
+
+			val = element->Attribute(TEXT("customColorDarkText"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.darkerText = i;
+
+			val = element->Attribute(TEXT("customColorDisabledText"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.disabledText = i;
+
+			val = element->Attribute(TEXT("customColorEdge"), &i);
+			if (val)
+				_nppGUI._darkmode._customColors.edge = i;
 		}
 	}
 }
@@ -6122,6 +6202,11 @@ void NppParameters::createXmlTreeFromGUIParams()
 	{
 		insertGUIConfigBoolNode(newGUIRoot, TEXT("DetectEncoding"), _nppGUI._detectEncoding);
 	}
+	
+	// <GUIConfig name = "SaveAllConfirm">yes< / GUIConfig>
+	{
+		insertGUIConfigBoolNode(newGUIRoot, TEXT("SaveAllConfirm"), _nppGUI._saveAllConfirm);
+	}
 
 	// <GUIConfig name = "NewDocDefaultSettings" format = "0" encoding = "0" lang = "3" codepage = "-1" openAnsiAsUTF8 = "no" / >
 	{
@@ -6383,7 +6468,7 @@ void NppParameters::createXmlTreeFromGUIParams()
 		GUIConfigElement->InsertEndChild(TiXmlText(_nppGUI._commandLineInterpreter.c_str()));
 	}
 
-	// <GUIConfig name="DarkMode" enable="no" enableExperimental="no" enableMenubar="no" enableScrollbarHack="no" />
+	// <GUIConfig name="DarkMode" enable="no" colorTone="0" />
 	{
 		TiXmlElement* GUIConfigElement = (newGUIRoot->InsertEndChild(TiXmlElement(TEXT("GUIConfig"))))->ToElement();
 		GUIConfigElement->SetAttribute(TEXT("name"), TEXT("DarkMode"));
@@ -6393,10 +6478,18 @@ void NppParameters::createXmlTreeFromGUIParams()
 			GUIConfigElement->SetAttribute(name, pStr);
 		};
 
-		setYesNoBoolAttribute(TEXT("enable"), _nppGUI._darkmode.enable);
-		setYesNoBoolAttribute(TEXT("enableExperimental"), _nppGUI._darkmode.enableExperimental);
-		setYesNoBoolAttribute(TEXT("enableMenubar"), _nppGUI._darkmode.enableMenubar);
-		setYesNoBoolAttribute(TEXT("enableScrollbarHack"), _nppGUI._darkmode.enableScrollbarHack);
+		setYesNoBoolAttribute(TEXT("enable"), _nppGUI._darkmode._isEnabled);
+		GUIConfigElement->SetAttribute(TEXT("colorTone"), _nppGUI._darkmode._colorTone);
+
+		GUIConfigElement->SetAttribute(TEXT("customColorTop"), _nppGUI._darkmode._customColors.pureBackground);
+		GUIConfigElement->SetAttribute(TEXT("customColorMenuHotTrack"), _nppGUI._darkmode._customColors.hotBackground);
+		GUIConfigElement->SetAttribute(TEXT("customColorActive"), _nppGUI._darkmode._customColors.softerBackground);
+		GUIConfigElement->SetAttribute(TEXT("customColorMain"), _nppGUI._darkmode._customColors.background);
+		GUIConfigElement->SetAttribute(TEXT("customColorError"), _nppGUI._darkmode._customColors.errorBackground);
+		GUIConfigElement->SetAttribute(TEXT("customColorText"), _nppGUI._darkmode._customColors.text);
+		GUIConfigElement->SetAttribute(TEXT("customColorDarkText"), _nppGUI._darkmode._customColors.darkerText);
+		GUIConfigElement->SetAttribute(TEXT("customColorDisabledText"), _nppGUI._darkmode._customColors.disabledText);
+		GUIConfigElement->SetAttribute(TEXT("customColorEdge"), _nppGUI._darkmode._customColors.edge);
 	}
 
 	// <GUIConfig name="ScintillaPrimaryView" lineNumberMargin="show" bookMarkMargin="show" indentGuideLine="show" folderMarkStyle="box" lineWrapMethod="aligned" currentLineHilitingShow="show" scrollBeyondLastLine="no" rightClickKeepsSelection="no" disableAdvancedScrolling="no" wrapSymbolShow="hide" Wrap="no" borderEdge="yes" edge="no" edgeNbColumn="80" zoom="0" zoom2="0" whiteSpaceShow="hide" eolShow="hide" borderWidth="2" smoothFont="no" />
@@ -6929,7 +7022,7 @@ generic_string NppParameters::getWinVerBitStr() const
 	}
 }
 
-void NppParameters::writeStyles(LexerStylerArray & lexersStylers, StyleArray & globalStylers)
+generic_string NppParameters::writeStyles(LexerStylerArray & lexersStylers, StyleArray & globalStylers)
 {
 	TiXmlNode *lexersRoot = (_pXmlUserStylerDoc->FirstChild(TEXT("NotepadPlus")))->FirstChildElement(TEXT("LexerStyles"));
 	for (TiXmlNode *childNode = lexersRoot->FirstChildElement(TEXT("LexerType"));
@@ -7023,7 +7116,17 @@ void NppParameters::writeStyles(LexerStylerArray & lexersStylers, StyleArray & g
 		}
 	}
 
-	_pXmlUserStylerDoc->SaveFile();
+	bool isSaved = _pXmlUserStylerDoc->SaveFile();
+	if (!isSaved)
+	{
+		auto savePath = _themeSwitcher.getSavePathFrom(_pXmlUserStylerDoc->Value());
+		if (!savePath.empty())
+		{
+			_pXmlUserStylerDoc->SaveFile(savePath.c_str());
+			return savePath;
+		}
+	}
+	return TEXT("");
 }
 
 

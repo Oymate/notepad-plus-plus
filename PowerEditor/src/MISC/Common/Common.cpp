@@ -997,6 +997,8 @@ HWND CreateToolTip(int toolID, HWND hDlg, HINSTANCE hInst, const PTSTR pszText)
 		return NULL;
 	}
 
+	NppDarkMode::setDarkTooltips(hwndTip, NppDarkMode::ToolTipsType::tooltip);
+
 	// Associate the tooltip with the tool.
 	TOOLINFO toolInfo = { 0 };
 	toolInfo.cbSize = sizeof(toolInfo);
@@ -1293,6 +1295,15 @@ void trim(generic_string& str)
 		if (pos != generic_string::npos) str.erase(0, pos);
 	}
 	else str.erase(str.begin(), str.end());
+}
+
+bool endsWith(const generic_string& s, const generic_string& suffix)
+{
+#if defined(_MSVC_LANG) && (_MSVC_LANG > 201402L)
+#error Replace this function with basic_string::ends_with
+#endif
+	size_t pos = s.find(suffix);
+	return pos != s.npos && ((s.length() - pos) == suffix.length());
 }
 
 int nbDigitsFromNbLines(size_t nbLines)

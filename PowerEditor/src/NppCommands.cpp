@@ -171,19 +171,19 @@ void Notepad_plus::command(int id)
 			fileReload();
 			break;
 
-		case IDM_FILESWITCHER_FILESCLOSE:
-		case IDM_FILESWITCHER_FILESCLOSEOTHERS:
-			if (_pFileSwitcherPanel)
+		case IDM_DOCLIST_FILESCLOSE:
+		case IDM_DOCLIST_FILESCLOSEOTHERS:
+			if (_pDocumentListPanel)
 			{
-				vector<SwitcherFileInfo> files = _pFileSwitcherPanel->getSelectedFiles(id == IDM_FILESWITCHER_FILESCLOSEOTHERS);
+				vector<SwitcherFileInfo> files = _pDocumentListPanel->getSelectedFiles(id == IDM_DOCLIST_FILESCLOSEOTHERS);
 				for (size_t i = 0, len = files.size(); i < len; ++i)
 				{
 					fileClose((BufferID)files[i]._bufID, files[i]._iView);
 				}
-				if (id == IDM_FILESWITCHER_FILESCLOSEOTHERS)
+				if (id == IDM_DOCLIST_FILESCLOSEOTHERS)
 				{
 					// Get current buffer and its view
-					_pFileSwitcherPanel->activateItem(_pEditView->getCurrentBufferID(), currentView());
+					_pDocumentListPanel->activateItem(_pEditView->getCurrentBufferID(), currentView());
 				}
 			}
 			break;
@@ -487,7 +487,8 @@ void Notepad_plus::command(int id)
 			if (nppGui._searchEngineChoice == nppGui.se_custom)
 			{
 				url = nppGui._searchEngineCustom;
-				remove_if(url.begin(), url.end(), _istspace);
+				url.erase(std::remove_if(url.begin(), url.end(), [](_TUCHAR x) {return _istspace(x); }),
+					url.end());
 
 				auto httpPos = url.find(TEXT("http://"));
 				auto httpsPos = url.find(TEXT("https://"));
@@ -497,17 +498,13 @@ void Notepad_plus::command(int id)
 					url = TEXT("https://www.google.com/search?q=$(CURRENT_WORD)");
 				}
 			}
-			else if (nppGui._searchEngineChoice == nppGui.se_duckDuckGo)
+			else if (nppGui._searchEngineChoice == nppGui.se_duckDuckGo || nppGui._searchEngineChoice == nppGui.se_bing)
 			{
 				url = TEXT("https://duckduckgo.com/?q=$(CURRENT_WORD)");
 			}
 			else if (nppGui._searchEngineChoice == nppGui.se_google)
 			{
 				url = TEXT("https://www.google.com/search?q=$(CURRENT_WORD)");
-			}
-			else if (nppGui._searchEngineChoice == nppGui.se_bing)
-			{
-				url = TEXT("https://www.bing.com/search?q=$(CURRENT_WORD)");
 			}
 			else if (nppGui._searchEngineChoice == nppGui.se_yahoo)
 			{
@@ -740,9 +737,41 @@ void Notepad_plus::command(int id)
 		}
 		break;
 
-		case IDM_VIEW_FILESWITCHER_PANEL:
+		case IDM_VIEW_SWITCHTO_DOCLIST:
 		{
-			launchFileSwitcherPanel();
+			if (_pDocumentListPanel && _pDocumentListPanel->isVisible())
+			{
+				_pDocumentListPanel->getFocus();
+			}
+			else
+			{
+				checkMenuItem(IDM_VIEW_DOCLIST, true);
+				_toolBar.setCheck(IDM_VIEW_DOCLIST, true);
+				launchDocumentListPanel();
+				_pDocumentListPanel->setClosed(false);
+			}
+		}
+		break;
+
+		case IDM_VIEW_DOCLIST:
+		{
+			if (_pDocumentListPanel && (!_pDocumentListPanel->isClosed()))
+			{
+				_pDocumentListPanel->display(false);
+				_pDocumentListPanel->setClosed(true);
+				checkMenuItem(IDM_VIEW_DOCLIST, false);
+				_toolBar.setCheck(IDM_VIEW_DOCLIST, false);
+			}
+			else
+			{
+				launchDocumentListPanel();
+				if (_pDocumentListPanel)
+				{
+					checkMenuItem(IDM_VIEW_DOCLIST, true);
+					_toolBar.setCheck(IDM_VIEW_DOCLIST, true);
+					_pDocumentListPanel->setClosed(false);
+				}
+			}
 		}
 		break;
 
@@ -863,7 +892,7 @@ void Notepad_plus::command(int id)
 			}
 		}
 		break;
-		
+
 		case IDM_VIEW_FUNC_LIST:
 		{
 			if (_pFuncList && (!_pFuncList->isClosed()))
@@ -1548,8 +1577,8 @@ void Notepad_plus::command(int id)
                             pWindow = &_subSplitter;
                         else
                             pWindow = _pDocTab;
-
-                        _pMainSplitter->create(pWindow, ScintillaEditView::getUserDefineDlg(), 8, SplitterMode::RIGHT_FIX, 45);
+						int splitterSizeDyn = NppParameters::getInstance()._dpiManager.scaleX(splitterSize);
+                        _pMainSplitter->create(pWindow, ScintillaEditView::getUserDefineDlg(), splitterSizeDyn, SplitterMode::RIGHT_FIX, 45);
                     }
 
 					_pMainWindow = _pMainSplitter;
